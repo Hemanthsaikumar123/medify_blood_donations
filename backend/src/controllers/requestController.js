@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const findMatchingDonors = require("../services/matchingService");
 
 exports.createBloodRequest = async (req, res) => {
 
@@ -14,8 +15,7 @@ exports.createBloodRequest = async (req, res) => {
             urgency
         } = req.body;
 
-        const request =
-        await pool.query(
+        const request = await pool.query(
             `
             INSERT INTO blood_requests
             (
@@ -44,9 +44,18 @@ exports.createBloodRequest = async (req, res) => {
             ]
         );
 
-        res.status(201).json({
-            message: "Blood request created",
-            request:request.rows[0]
+        const matches = await findMatchingDonors(bloodGroupNeeded,latitude,longitude);
+
+
+       res.status(201).json({
+            message:
+                "Blood request created",
+
+            request:
+                request.rows[0],
+
+            matchedDonors:
+                matches.slice(0, 10)
         });
 
     } catch (error) {
